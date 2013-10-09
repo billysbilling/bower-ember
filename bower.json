@@ -1,0 +1,18 @@
+{
+  "name": "bower-ember",
+  "description": "Built from 65cec9d34c25d37c6781a80ed58923402cc1075a (with a fix for the require('jquery') issue mentioned at https://github.com/emberjs/ember.js/pull/3555)",
+  "version": "1.0.0",
+  "homepage": "https://github.com/billysbilling/bower-ember",
+  "authors": [
+    "Ember.js"
+  ],
+  "main": "ember.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
