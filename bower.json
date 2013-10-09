@@ -1,6 +1,6 @@
 {
   "name": "bower-ember",
-  "description": "Built from 65cec9d34c25d37c6781a80ed58923402cc1075a (with a fix for the require('jquery') issue mentioned at https://github.com/emberjs/ember.js/pull/3555)",
+  "description": "Built from 99fea760c73a3e0264330debf81737b41f6e200c",
   "version": "1.0.0",
   "homepage": "https://github.com/billysbilling/bower-ember",
   "authors": [

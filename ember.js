@@ -196,8 +196,8 @@ if (!Ember.testing) {
 // ==========================================================================
 
 
-// Version: help-2-g65cec9d
-// Last commit: 65cec9d (2013-10-08 20:04:02 -0700)
+// Version: help-4-g99fea76
+// Last commit: 99fea76 (2013-10-08 21:46:58 -0700)
 
 
 (function() {
@@ -18566,9 +18566,9 @@ Ember Runtime
 
 var jQuery = this.jQuery || (Ember.imports && Ember.imports.jQuery);
 if (!jQuery && typeof require === 'function') {
-    jQuery = require('jquery');
+  jQuery = require('jquery');
 }
-    
+
 Ember.assert("Ember Views require jQuery 1.7, 1.8, 1.9, 1.10, or 2.0", jQuery && (jQuery().jquery.match(/^((1\.(7|8|9|10))|2.0)(\.\d+)?(pre|rc\d?)?/) || Ember.ENV.FORCE_JQUERY));
 
 /**
