@@ -16,6 +16,7 @@
     "tests"
   ],
   "dependencies": {
+    "handlebars": "billysbilling/bower-handlebars#master",
     "jquery": "2.0.3"
   }
 }
