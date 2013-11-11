@@ -1,6 +1,5 @@
 {
   "name": "bower-ember",
-  "description": "Built from 99fea760c73a3e0264330debf81737b41f6e200c",
   "version": "1.0.0",
   "homepage": "https://github.com/billysbilling/bower-ember",
   "authors": [
@@ -16,7 +15,7 @@
     "tests"
   ],
   "dependencies": {
-    "handlebars": "billysbilling/bower-handlebars#master",
-    "jquery": "2.0.3"
+    "handlebars": "billysbilling/bower-handlebars#1.0.12",
+    "jquery": "~2.0.3"
   }
 }
