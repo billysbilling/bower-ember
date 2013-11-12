@@ -194,7 +194,7 @@ if (!Ember.testing) {
 // ==========================================================================
 
 
- // Version: 1.3.0-beta.1+canary.0fcc6f8d
+ // Version: 1.3.0-beta.1+canary.a51806a2
 
 (function() {
 var define, requireModule;
@@ -3975,7 +3975,7 @@ Ember.finishChains = function(obj) {
   @module ember-metal
 */
 
-
+if (Ember.FEATURES.isEnabled('propertyBraceExpansion')) {
   var forEach = Ember.EnumerableUtils.forEach,
       IS_BRACE_EXPANSION = /^\{([^.]*)\}$/;
 
@@ -4009,7 +4009,7 @@ Ember.finishChains = function(obj) {
 
     callback(pattern);
   };
-
+}
 
 })();
 
@@ -4078,9 +4078,9 @@ var metaFor = Ember.meta, // utils.js
     generateGuid = Ember.generateGuid,
     IS_PATH = /[\.\*]/;
 
-
+if (Ember.FEATURES.isEnabled('propertyBraceExpansion')) {
   var expandProperties = Ember.expandProperties;
-
+}
 
 // returns true if the passed path is just a keyName
 function isKeyName(path) {
@@ -4105,7 +4105,7 @@ Ember.watch = function(obj, _keyPath) {
   // can't watch length on Array - it is special...
   if (_keyPath === 'length' && typeOf(obj) === 'array') { return; }
 
-  
+  if (Ember.FEATURES.isEnabled('propertyBraceExpansion')) {
     expandProperties(_keyPath, function (keyPath) {
       if (isKeyName(keyPath)) {
         watchKey(obj, keyPath);
@@ -4113,7 +4113,14 @@ Ember.watch = function(obj, _keyPath) {
         watchPath(obj, keyPath);
       }
     });
-  };
+  } else {
+    if (isKeyName(_keyPath)) {
+      watchKey(obj, _keyPath);
+    } else {
+      watchPath(obj, _keyPath);
+    }
+  }
+};
 
 Ember.isWatching = function isWatching(obj, key) {
   var meta = obj[META_KEY];
@@ -4126,7 +4133,7 @@ Ember.unwatch = function(obj, _keyPath) {
   // can't watch length on Array - it is special...
   if (_keyPath === 'length' && typeOf(obj) === 'array') { return; }
 
-  
+  if (Ember.FEATURES.isEnabled('propertyBraceExpansion')) {
     expandProperties(_keyPath, function (keyPath) {
       if (isKeyName(keyPath)) {
         unwatchKey(obj, keyPath);
@@ -4134,7 +4141,14 @@ Ember.unwatch = function(obj, _keyPath) {
         unwatchPath(obj, keyPath);
       }
     });
-  };
+  } else {
+    if (isKeyName(_keyPath)) {
+      unwatchKey(obj, _keyPath);
+    } else {
+      unwatchPath(obj, _keyPath);
+    }
+  }
+};
 
 /**
   @private
@@ -4225,9 +4239,9 @@ var get = Ember.get,
     watch = Ember.watch,
     unwatch = Ember.unwatch;
 
-
+if (Ember.FEATURES.isEnabled('propertyBraceExpansion')) {
   var expandProperties = Ember.expandProperties;
-
+}
 
 // ..........................................................
 // DEPENDENT KEYS
@@ -4484,16 +4498,19 @@ ComputedPropertyPrototype.readOnly = function(readOnly) {
 ComputedPropertyPrototype.property = function() {
   var addArg;
 
-  
+  if (Ember.FEATURES.isEnabled('propertyBraceExpansion')) {
     // Slightly odd setup to keep JSHint happy
     addArg = function(arg) { args.push(arg); };
-  
+  }
 
   var args = [];
   for (var i = 0, l = arguments.length; i < l; i++) {
-    
+    if (Ember.FEATURES.isEnabled('propertyBraceExpansion')) {
       expandProperties(arguments[i], addArg);
-      }
+    } else {
+      args.push(arguments[i]);
+    }
+  }
   this._dependentKeys = args;
   return this;
 };
@@ -5348,9 +5365,9 @@ Ember.computed.defaultTo = function(defaultPath) {
 var AFTER_OBSERVERS = ':change',
     BEFORE_OBSERVERS = ':before';
 
-
+if (Ember.FEATURES.isEnabled('propertyBraceExpansion')) {
   var expandProperties = Ember.expandProperties;
-
+}
 
 function changeEvent(keyName) {
   return keyName+AFTER_OBSERVERS;
@@ -5368,12 +5385,16 @@ function beforeEvent(keyName) {
   @param {Function|String} [method]
 */
 Ember.addObserver = function(obj, _path, target, method) {
-  
+  if (Ember.FEATURES.isEnabled('propertyBraceExpansion')) {
     expandProperties(_path, function (path) {
       Ember.addListener(obj, changeEvent(path), target, method);
       Ember.watch(obj, path);
     });
-  
+  } else {
+    Ember.addListener(obj, changeEvent(_path), target, method);
+    Ember.watch(obj, _path);
+  }
+
   return this;
 };
 
@@ -5389,12 +5410,16 @@ Ember.observersFor = function(obj, path) {
   @param {Function|String} [method]
 */
 Ember.removeObserver = function(obj, _path, target, method) {
-  
+  if (Ember.FEATURES.isEnabled('propertyBraceExpansion')) {
     expandProperties(_path, function (path) {
       Ember.unwatch(obj, path);
       Ember.removeListener(obj, changeEvent(path), target, method);
     });
-    return this;
+  } else {
+    Ember.unwatch(obj, _path);
+    Ember.removeListener(obj, changeEvent(_path), target, method);
+  }
+  return this;
 };
 
 /**
@@ -5405,12 +5430,16 @@ Ember.removeObserver = function(obj, _path, target, method) {
   @param {Function|String} [method]
 */
 Ember.addBeforeObserver = function(obj, _path, target, method) {
-  
+  if (Ember.FEATURES.isEnabled('propertyBraceExpansion')) {
     expandProperties(_path, function (path) {
       Ember.addListener(obj, beforeEvent(path), target, method);
       Ember.watch(obj, path);
     });
-    return this;
+  } else {
+    Ember.addListener(obj, beforeEvent(_path), target, method);
+    Ember.watch(obj, _path);
+  }
+  return this;
 };
 
 // Suspend observer during callback.
@@ -5449,12 +5478,16 @@ Ember.beforeObserversFor = function(obj, path) {
   @param {Function|String} [method]
 */
 Ember.removeBeforeObserver = function(obj, _path, target, method) {
-  
+  if (Ember.FEATURES.isEnabled('propertyBraceExpansion')) {
     expandProperties(_path, function (path) {
       Ember.unwatch(obj, path);
       Ember.removeListener(obj, beforeEvent(path), target, method);
     });
-    return this;
+  } else {
+    Ember.unwatch(obj, _path);
+    Ember.removeListener(obj, beforeEvent(_path), target, method);
+  }
+  return this;
 };
 
 })();
@@ -11679,7 +11712,10 @@ function ReduceComputedProperty(options) {
 
     meta.dependentArraysObserver.suspendArrayObservers(function () {
       forEach(cp._dependentKeys, function (dependentKey) {
-        
+        if (Ember.FEATURES.isEnabled('reduceComputed-non-array-dependencies')) {
+          if (!partiallyRecomputeFor(this, dependentKey)) { return; }
+        }
+
         var dependentArray = get(this, dependentKey),
             previousDependentArray = meta.dependentArrays[dependentKey];
 
@@ -11707,7 +11743,10 @@ function ReduceComputedProperty(options) {
     }, this);
 
     forEach(cp._dependentKeys, function(dependentKey) {
-      
+      if (Ember.FEATURES.isEnabled('reduceComputed-non-array-dependencies')) {
+        if (!partiallyRecomputeFor(this, dependentKey)) { return; }
+      }
+
       var dependentArray = get(this, dependentKey);
       if (dependentArray) {
         addItems.call(this, dependentArray, callbacks, cp, propertyName, meta);
@@ -13170,6 +13209,31 @@ Ember.String = {
   }
 };
 
+if (Ember.FEATURES.isEnabled("string-humanize")) {
+  /**
+    Returns the Humanized form of a string
+
+    Replaces underscores with spaces, and capitializes first character
+    of string. Also strips "_id" suffixes.
+
+    ```javascript
+    'first_name'.humanize()       // 'First name'
+    'user_id'.humanize()          // 'User'
+    ```
+
+    @method humanize
+    @param {String} str The string to humanize.
+    @return {String} The humanized string.
+  */
+
+  Ember.String.humanize = function(str) {
+    return str.replace(/_id$/, '').
+      replace(/_/g, ' ').
+      replace(/^\w/g, function(s){
+        return s.toUpperCase();
+      });
+  };
+}
 
 
 })();
@@ -13194,6 +13258,9 @@ var fmt = Ember.String.fmt,
     capitalize = Ember.String.capitalize,
     classify = Ember.String.classify;
 
+if (Ember.FEATURES.isEnabled("string-humanize")) {
+    var humanize = Ember.String.humanize;
+}
 
 if (Ember.EXTEND_PROTOTYPES === true || Ember.EXTEND_PROTOTYPES.String) {
 
@@ -13287,7 +13354,18 @@ if (Ember.EXTEND_PROTOTYPES === true || Ember.EXTEND_PROTOTYPES.String) {
     return capitalize(this);
   };
 
-  
+  if (Ember.FEATURES.isEnabled("string-humanize")) {
+    /**
+      See [Ember.String.humanize](/api/classes/Ember.String.html#method_humanize).
+
+      @method humanize
+      @for String
+    */
+    String.prototype.humanize = function() {
+      return humanize(this);
+    };
+  }
+
 }
 
 
@@ -24620,7 +24698,21 @@ var handlebarsGet = Ember.Handlebars.get = function(root, path, options) {
       normalizedPath = normalizePath(root, path, data),
       value;
 
-  
+  if (Ember.FEATURES.isEnabled("ember-handlebars-caps-lookup")) {
+
+    // If the path starts with a capital letter, look it up on Ember.lookup,
+    // which defaults to the `window` object in browsers.
+    if (Ember.isGlobalPath(path)) {
+      value = Ember.get(Ember.lookup, path);
+    } else {
+
+      // In cases where the path begins with a keyword, change the
+      // root to the value represented by that keyword, and ensure
+      // the path is relative to it.
+      value = Ember.get(normalizedPath.root, normalizedPath.path);
+    }
+
+  } else {
     root = normalizedPath.root;
     path = normalizedPath.path;
 
@@ -24629,7 +24721,7 @@ var handlebarsGet = Ember.Handlebars.get = function(root, path, options) {
     if (value === undefined && root !== Ember.lookup && Ember.isGlobalPath(path)) {
       value = Ember.get(Ember.lookup, path);
     }
-  
+  }
 
   return value;
 };
@@ -31381,14 +31473,14 @@ DSL.prototype = {
     }
 
 
-    
+    if (Ember.FEATURES.isEnabled("ember-routing-named-substates")) {
       // For namespace-preserving nested resource (e.g. resource('foo.bar') within
       // resource('foo')) we only want to use the last route name segment to determine
       // the names of the error/loading substates (e.g. 'bar_loading')
       name = name.split('.').pop();
       route(this, name + '_loading');
       route(this, name + '_error', { path: "/_unused_dummy_error_path_route_" + name + "/:error" });
-    
+    }
   },
 
   push: function(url, name, callback, queryParams) {
@@ -31400,10 +31492,10 @@ DSL.prototype = {
 
   route: function(name, options) {
     route(this, name, options);
-    
+    if (Ember.FEATURES.isEnabled("ember-routing-named-substates")) {
       route(this, name + '_loading');
       route(this, name + '_error', { path: "/_unused_dummy_error_path_route_" + name + "/:error" });
-    
+    }
   },
 
   generate: function() {
@@ -31417,11 +31509,11 @@ DSL.prototype = {
       for (var i=0, l=dslMatches.length; i<l; i++) {
         var dslMatch = dslMatches[i];
         var matchObj = match(dslMatch[0]).to(dslMatch[1], dslMatch[2]);
-        
+        if (Ember.FEATURES.isEnabled("query-params")) {
           if(dslMatch[3]) {
             matchObj.withQueryParams.apply(matchObj, dslMatch[3]);
           }
-        
+        }
       }
     };
   }
@@ -31755,9 +31847,9 @@ Ember.Router = Ember.Object.extend(Ember.Evented, {
     var passedName = args[0], name, self = this,
       isQueryParamsOnly = false;
 
-    
+    if (Ember.FEATURES.isEnabled("query-params")) {
       isQueryParamsOnly = (args.length === 1 && args[0].hasOwnProperty('queryParams'));
-    
+    }
 
     if (!isQueryParamsOnly && passedName.charAt(0) === '/') {
       name = passedName;
@@ -31920,13 +32012,13 @@ function findChildRouteName(parentRoute, originatingChildRoute, name) {
       targetChildRouteName = originatingChildRoute.routeName.split('.').pop(),
       namespace = parentRoute.routeName === 'application' ? '' : parentRoute.routeName + '.';
 
-  
+  if (Ember.FEATURES.isEnabled("ember-routing-named-substates")) {
     // First, try a named loading state, e.g. 'foo_loading'
     childName = namespace + targetChildRouteName + '_' + name;
     if (routeHasBeenDefined(router, childName)) {
       return childName;
     }
-  
+  }
 
   // Second, try general loading state, e.g. 'loading'
   childName = namespace + name;
@@ -32540,9 +32632,9 @@ Ember.Route = Ember.Object.extend(Ember.ActionHandler, {
 
     var args = [controller, context];
 
-    
+    if (Ember.FEATURES.isEnabled("query-params")) {
       args.push(queryParams);
-    
+    }
 
     if (this.setupControllers) {
       Ember.deprecate("Ember.Route.setupControllers is deprecated. Please use Ember.Route.setupController(controller, model) instead.");
@@ -33588,13 +33680,13 @@ Ember.onLoad('Ember.Handlebars', function(Handlebars) {
       }
 
 
-      
+      if (Ember.FEATURES.isEnabled("query-params")) {
         var queryParams = get(this, '_potentialQueryParams') || [];
 
         for(i=0; i < queryParams.length; i++) {
           this.registerObserver(this, queryParams[i], this, this._queryParamsChanged);
         }
-      
+      }
     },
 
     /**
@@ -33742,14 +33834,14 @@ Ember.onLoad('Ember.Handlebars', function(Handlebars) {
           types = options.types,
           data = options.data;
 
-      
+      if (Ember.FEATURES.isEnabled("query-params")) {
         if (parameters.params.length === 0) {
           var appController = this.container.lookup('controller:application');
           return [get(appController, 'currentRouteName')];
         } else {
           return resolveParams(parameters.context, parameters.params, { types: types, data: data });
         }
-      
+      }
 
       // Original implementation if query params not enabled
       return resolveParams(parameters.context, parameters.params, { types: types, data: data });
@@ -33784,11 +33876,11 @@ Ember.onLoad('Ember.Handlebars', function(Handlebars) {
         }
       }
 
-      
+      if (Ember.FEATURES.isEnabled("query-params")) {
         var queryParams = get(this, 'queryParams');
 
         if (queryParams || queryParams === false) { resolvedParams.push({queryParams: queryParams}); }
-      
+      }
 
       return resolvedParams;
     }).property('resolvedParams', 'queryParams', 'router.url'),
@@ -35221,7 +35313,7 @@ Ember.HashLocation = Ember.Object.extend({
     @method getURL
   */
   getURL: function() {
-    
+    if (Ember.FEATURES.isEnabled("query-params")) {
       // location.hash is not used because it is inconsistently
       // URL-decoded between browsers.
       var href = get(this, 'location').href,
@@ -35232,7 +35324,7 @@ Ember.HashLocation = Ember.Object.extend({
       } else {
         return href.substr(hashIndex + 1);
       }
-    
+    }
     // Default implementation without feature flag enabled
     return get(this, 'location').hash.substr(1);
   },
@@ -35388,10 +35480,10 @@ Ember.HistoryLocation = Ember.Object.extend({
     rootURL = rootURL.replace(/\/$/, '');
     var url = path.replace(rootURL, '');
 
-    
+    if (Ember.FEATURES.isEnabled("query-params")) {
       var search = location.search || '';
       url += search;
-    
+    }
 
     return url;
   },
@@ -37407,8 +37499,7 @@ Ember Extension Support
 var slice = [].slice,
     helpers = {},
     originalMethods = {},
-    injectHelpersCallbacks = [],
-    Router = requireModule('router');
+    injectHelpersCallbacks = [];
 
 /**
   This is a container for an assortment of testing related functionality:
@@ -37742,9 +37833,12 @@ Ember.Application.reopen({
   setupForTesting: function() {
     Ember.testing = true;
 
-    
+    if (Ember.FEATURES.isEnabled('ember-testing-lazy-routing')){
       this.testing = true;
-    
+    } else {
+      this.deferReadiness();
+    }
+
     this.Router.reopen({
       location: 'none'
     });
@@ -37887,11 +37981,8 @@ function isolate(fn, val) {
   }
 }
 
-
 function onerror(error) {
-  if (!(error instanceof Router.TransitionAborted)) {
-    Ember.Test.adapter.exception(error);
-  }
+  Ember.Test.adapter.exception(error);
 }
 
 })();
@@ -37900,7 +37991,7 @@ function onerror(error) {
 
 (function() {
 Ember.onLoad('Ember.Application', function(Application) {
-  
+  if (Ember.FEATURES.isEnabled('ember-testing-lazy-routing')){
     Application.initializer({
       name: 'deferReadiness in `testing` mode',
 
@@ -37910,7 +38001,7 @@ Ember.onLoad('Ember.Application', function(Application) {
         }
       }
     });
-  
+  }
 });
 
 })();
@@ -38085,9 +38176,9 @@ Test.onInjectHelpers(function() {
 
 
 function visit(app, url) {
-  
+  if (Ember.FEATURES.isEnabled('ember-testing-lazy-routing')){
     Ember.run(app, 'advanceReadiness');
-  
+  }
 
   app.__container__.lookup('router:main').location.setURL(url);
   Ember.run(app, app.handleURL, url);
@@ -38184,7 +38275,14 @@ function wait(app, value) {
 
       // 3. If there are scheduled timers or we are inside of a run loop, keep polling
       if (Ember.run.hasScheduledTimers() || Ember.run.currentRunLoop) { return; }
-            // Stop polling
+      if (Ember.FEATURES.isEnabled("ember-testing-wait-hooks")) {
+        if (Test.waiters && Test.waiters.any(function(waiter) {
+          var context = waiter[0];
+          var callback = waiter[1];
+          return !callback.apply(context);
+        })) { return; }
+      }
+      // Stop polling
       clearInterval(watcher);
 
       // If this is the last async promise, end the async test
